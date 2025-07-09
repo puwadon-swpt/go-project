@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:5.7
+    container_name: mysql-go-project
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: go_project
+      MYSQL_USER: user
+      MYSQL_PASSWORD: userpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - go-project-network
+
+  golang-app:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    container_name: golang-go-project
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_USER: user
+      MYSQL_PASSWORD: userpassword
+      MYSQL_DB: go_project
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    volumes:
+      - .:/app  # ให้ Air ทำการติดตามโค้ดที่มีการเปลี่ยนแปลง
+    command: 'sh -c "cd /app/ && air -c .air.toml"'
+    networks:
+      - go-project-network
+
+volumes:
+  mysql-data:
+
+networks:
+  go-project-network:
+    driver: bridge
